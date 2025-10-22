@@ -20,13 +20,20 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/kmit-club";
 app.use(bodyParser.json());
 
+// app.use(cors({
+//   origin: [
+//     "https://azeemafirdouss.github.io", // your GitHub Pages frontend
+//     "http://localhost:3000"             // optional: for local testing
+//   ],
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+//   credentials: true
+// }));
+const cors = require("cors");
+
 app.use(cors({
-  origin: [
-    "https://azeemafirdouss.github.io", // your GitHub Pages frontend
-    "http://localhost:3000"             // optional: for local testing
-  ],
+  origin: "https://azeemafirdouss.github.io", // 👈 your frontend domain
   methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 // Serve the frontend files
 app.use(express.static(path.join(__dirname, '..', 'frontend')));

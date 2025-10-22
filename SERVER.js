@@ -384,22 +384,41 @@ app.post("/student/join-club", authenticateToken, async (req, res) => {
 });
 
 // 2. CLUB HEAD: GET DASHBOARD DATA (INCL. REQUESTS AND MEMBERS)
+// app.get("/clubhead/dashboard", authenticateToken, async (req, res) => {
+//     if (req.user.role !== "clubhead") return res.status(403).json({ error: "Unauthorized" });
+//     try {
+//         const clubHead = await ClubHead.findById(req.user.id);
+//          console.log("DEBUG: Checking Club Head:", clubHead); 
+//         if (!clubHead) return res.status(404).json({ error: "Club head not found" });
+//         const clubData = await Club.findById(clubHead.club)
+//             .populate('pendingRequests', 'name username rollNumber')
+//             .populate('members', 'name username rollNumber');
+//         if (!clubData) return res.status(404).json({ error: "Club data not found" });
+//         res.json(clubData);
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ error: "Server error" });
+//     }
+// });
+
+
 app.get("/clubhead/dashboard", authenticateToken, async (req, res) => {
-    if (req.user.role !== "clubhead") return res.status(403).json({ error: "Unauthorized" });
-    try {
-        const clubHead = await ClubHead.findById(req.user.id);
-         console.log("DEBUG: Checking Club Head:", clubHead); 
-        if (!clubHead) return res.status(404).json({ error: "Club head not found" });
-        const clubData = await Club.findById(clubHead.club)
-            .populate('pendingRequests', 'name username rollNumber')
-            .populate('members', 'name username rollNumber');
-        if (!clubData) return res.status(404).json({ error: "Club data not found" });
-        res.json(clubData);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Server error" });
+  try {
+    const club = await Club.findOne({ headUsername: req.user.username })
+      .populate("members", "username")
+      .populate("pendingRequests", "username");
+
+    if (!club) {
+      return res.json({ error: "No club found for this club head." });
     }
+
+    res.json(club);
+  } catch (err) {
+    console.error("Dashboard error:", err);
+    res.json({ error: "Server error while loading dashboard." });
+  }
 });
+
 
 // 3. CLUB HEAD: RESPOND TO A JOIN REQUEST (ACCEPT/REJECT)
 app.post("/clubhead/respond", authenticateToken, async (req, res) => {

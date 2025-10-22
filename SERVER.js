@@ -28,7 +28,7 @@ app.use(bodyParser.json());
 //   methods: ["GET", "POST", "PUT", "DELETE"],
 //   credentials: true
 // }));
-const cors = require("cors");
+
 
 app.use(cors({
   origin: "https://azeemafirdouss.github.io", // 👈 your frontend domain

@@ -181,31 +181,78 @@ app.post("/register", async (req, res) => {
       return res.json({ message: "✅ Faculty registration successful" });
     }
 
+    // if (role === "clubhead") {
+    //   const { clubUsername, clubPassword } = req.body;
+    //   if (!validateClubHeadUsername(clubUsername)) {
+    //     return res.status(400).json({ error: "❌ Invalid club username format. Use: Clubname-Head" });
+    //   }
+    //   if (!validateClubPassword(clubPassword)) {
+    //     return res.status(400).json({ error: "❌ Invalid password format." });
+    //   }
+    //   const club = await Club.findOne({ headUsername: { $regex: new RegExp(`^${escapeRegex(clubUsername)}$`, 'i') } });
+    //   if (!club) {
+    //     return res.status(400).json({ error: "❌ This club is not configured for a head or the username is incorrect." });
+    //   }
+    //   const existingHead = await ClubHead.findOne({ username: { $regex: new RegExp(`^${escapeRegex(clubUsername)}$`, 'i') } });
+    //   if (existingHead) {
+    //     return res.status(400).json({ error: "❌ This club already has a head assigned." });
+    //   }
+    //   const clubHead = new ClubHead({
+    //     username: clubUsername,
+    //     password: clubPassword, // PLAIN TEXT
+    //     name: clubUsername.replace(/-head$/i, '') + " Head",
+    //     club: club._id
+    //   });
+    //   await clubHead.save();
+    //   return res.json({ message: "✅ Club Head registration successful" });
+    // }
     if (role === "clubhead") {
-      const { clubUsername, clubPassword } = req.body;
-      if (!validateClubHeadUsername(clubUsername)) {
-        return res.status(400).json({ error: "❌ Invalid club username format. Use: Clubname-Head" });
-      }
-      if (!validateClubPassword(clubPassword)) {
-        return res.status(400).json({ error: "❌ Invalid password format." });
-      }
-      const club = await Club.findOne({ headUsername: { $regex: new RegExp(`^${escapeRegex(clubUsername)}$`, 'i') } });
-      if (!club) {
-        return res.status(400).json({ error: "❌ This club is not configured for a head or the username is incorrect." });
-      }
-      const existingHead = await ClubHead.findOne({ username: { $regex: new RegExp(`^${escapeRegex(clubUsername)}$`, 'i') } });
-      if (existingHead) {
-        return res.status(400).json({ error: "❌ This club already has a head assigned." });
-      }
-      const clubHead = new ClubHead({
-        username: clubUsername,
-        password: clubPassword, // PLAIN TEXT
-        name: clubUsername.replace(/-head$/i, '') + " Head",
-        club: club._id
-      });
-      await clubHead.save();
-      return res.json({ message: "✅ Club Head registration successful" });
+  try {
+    const { clubUsername, clubPassword } = req.body;
+
+    if (!clubUsername || !clubPassword) {
+      return res.status(400).json({ error: "❌ Please fill in all fields." });
     }
+
+    // Case-insensitive search for the club's headUsername
+    const club = await Club.findOne({
+      headUsername: { $regex: new RegExp(`^${clubUsername}$`, "i") },
+    });
+
+    if (!club) {
+      return res
+        .status(400)
+        .json({ error: "❌ This club is not configured for a head or the username is incorrect." });
+    }
+
+    // Check if already registered
+    const existingHead = await ClubHead.findOne({
+      username: { $regex: new RegExp(`^${clubUsername}$`, "i") },
+    });
+
+    if (existingHead) {
+      return res
+        .status(400)
+        .json({ error: "❌ This club already has a head assigned." });
+    }
+
+    // Save new club head
+    const clubHead = new ClubHead({
+      username: clubUsername,
+      password: clubPassword, // (you can later hash this)
+      name: `${club.name} Head`,
+      club: club._id,
+    });
+
+    await clubHead.save();
+    return res.json({ message: "✅ Club Head registration successful" });
+
+  } catch (error) {
+    console.error("Club Head registration error:", error);
+    return res.status(500).json({ error: "❌ Server error during club head registration." });
+  }
+}
+
 
     if (role === "admin") {
       const { adminId, adminPassword } = req.body;
